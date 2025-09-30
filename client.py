@@ -7,7 +7,7 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-port', "--port")
+    parser.add_argument('-port', "--port", type=int)
     parser.add_argument('-host', "--host")
     parser.add_argument('-username', '--username')
     parser.add_argument('-passcode', '--passcode') 
@@ -30,9 +30,26 @@ def main():
     host = args.host
     port =args.port
     username = args.username
-    password = args.password
+    passcode = args.passcode
 
     print(host)
+
+    mySocket = socket.socket()
+    try:
+        mySocket.connect((host, port))
+        mySocket.send(bytes(f"<{username} joined>", "UTF-8"))
+    except:
+        print("failed")
+        return
+
+    while True:
+        text = input("> ")
+        #handle special input here
+        msg = f"<{username}> " + text
+
+        mySocket.send(bytes(msg, "UTF-8"))
+
+        
 
 
 
