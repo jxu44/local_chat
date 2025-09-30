@@ -4,6 +4,33 @@ import sys
 import argparse
 
 
+#threads for concurrent read/write
+def write(mySocket, username, passcode, host, port):
+
+    #send passcode first
+    mySocket.send(bytes(passcode, 'utf-8'))
+
+    #then username
+    mySocket.send(bytes(username, 'utf-8'))
+
+    print(f"Connected to {host} on port {port}")
+    while True:
+        text = input()
+        #handle special input here
+        if text in commands:
+            pass
+
+        mySocket.send(bytes(text, "UTF-8"))
+
+
+def read(mySocket):
+    while True:
+        msg = mySocket.recv(1024)
+        if not msg:
+            print('server disconnected')
+            return
+        print(msg.decode())
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -37,18 +64,16 @@ def main():
     mySocket = socket.socket()
     try:
         mySocket.connect((host, port))
-        mySocket.send(bytes(f"<{username} joined>", "UTF-8"))
     except:
         print("failed")
         return
 
-    while True:
-        text = input("> ")
-        #handle special input here
-        msg = f"<{username}> " + text
+    read_t = threading.Thread(target=read, args= [mySocket])
 
-        mySocket.send(bytes(msg, "UTF-8"))
+    write_t = threading.Thread(target=write, args=(mySocket, username, passcode, host, port))
 
+    read_t.start()
+    write_t.start()
         
 
 

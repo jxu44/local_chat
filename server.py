@@ -4,16 +4,62 @@ import sys
 import argparse
 from datetime import datetime, timedelta
 
+sockets = []
+users = {}
+commands = [":)", ":(", ":Exit", ":mytime", ":+1hr", ":Users", ":Msg"]
 
-def run(client, address):
+
+#listen thread mainloop
+def run(client_socket, address, passcode):
+
+    #check password first
+    verified = False
+    login = client_socket.recv(1024)
+    print(login)
+    if login.decode() != passcode:
+        print("user not validated")
+        client_socket.close()
+        return
+    
+    #receive client username - more efficient to store here than send repeatedly from client
+    username = client_socket.recv(1024).decode()
+    users[address] = username
+    join_msg = f"<{username}> joined the chatroom"
+    print(join_msg)
+    for s in sockets:
+        if s != client_socket:
+            s.send(join_msg)
+
+    #main loop
     while True:
-        msg = client.recv(1024)
+        msg = client_socket.recv(1024).decode()
         if not msg:
             break
 
-        #handle special input
+        if msg[:4] == ":Msg":
+            #handle it
+            continue
 
-        print(msg.decode())
+        
+        #handle special input
+        '''
+        if msg in commands:
+            match(msg):
+                case ":)":
+                case ":(":
+                case ":Users":
+                case ":mytime":
+                case ":+1hr":
+                case ":Exit":
+
+'''
+
+        formatted = f"<{username}>: " + msg.decode()
+        print(formatted)
+        for s in sockets:
+            if s != client_socket:
+                s.send(formatted)
+
 
 
 def main():
@@ -39,12 +85,12 @@ def main():
     mySocket.bind(('127.0.0.1', port))
     mySocket.listen(5)
         
-     
     while True:
-        (client, address) = mySocket.accept()
-        ct = threading.Thread(args=(client, address), target=run)
+        (client_socket, address) = mySocket.accept()
+        print(address)
+        ct = threading.Thread(args=(client_socket, address, passcode), target=run)
         ct.start()
-        
+        sockets.append(client_socket)
 
 
 
