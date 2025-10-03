@@ -38,6 +38,14 @@ def run(client_socket, address, passcode):
 
         if msg[:4] == ":Msg":
             #handle it
+            i = 5
+            j = 5
+            while msg[j] != " ":
+                j += 1
+
+            user = msg[i:j]
+            dm = msg[j+1:]
+            
             continue
 
         
@@ -51,6 +59,7 @@ def run(client_socket, address, passcode):
                 case ":mytime":
                 case ":+1hr":
                 case ":Exit":
+
 
 '''
 
