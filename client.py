@@ -7,37 +7,36 @@ import argparse
 #threads for concurrent read/write
 def write(mySocket, username, passcode, host, port):
 
-    #send passcode first
-    mySocket.send(bytes(passcode, 'utf-8'))
+    #send passcode and username first
+    mySocket.send(f"{passcode}%%%{username}".encode())
 
-    #then username
-    mySocket.send(bytes(username, 'utf-8'))
+
+
 
     print(f"Connected to {host} on port {port}")
     while True:
         text = input()
-        #handle special input here
-        if text in commands:
-            pass
-
-        mySocket.send(bytes(text, "UTF-8"))
+        mySocket.send(text.encode())
 
 
 def read(mySocket):
     while True:
         msg = mySocket.recv(1024)
         if not msg:
-            print('server disconnected')
+            print('Disconnected from Server')
+            sys.stdout.flush()
             return
         print(msg.decode())
+        sys.stdout.flush()
 
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('-join', action='store_true')
     parser.add_argument('-port', "--port", type=int)
     parser.add_argument('-host', "--host")
     parser.add_argument('-username', '--username')
-    parser.add_argument('-passcode', '--passcode') 
+    parser.add_argument('-passcode', '--passcode', type=str) 
     args = parser.parse_args()
 
     if not args.port:
@@ -50,17 +49,14 @@ def main():
         print("Please provide a valid username.")
         return
     if not args.passcode or len(args.passcode) > 5:
-        print("Please provide a valid passcode.")
+        print("Incorrect passcode")
         return
 
 
     host = args.host
-    port =args.port
+    port = args.port
     username = args.username
     passcode = args.passcode
-
-    print(host)
-
     mySocket = socket.socket()
     try:
         mySocket.connect((host, port))
@@ -77,7 +73,7 @@ def main():
         
 
 
-
+    return
 
 
 
